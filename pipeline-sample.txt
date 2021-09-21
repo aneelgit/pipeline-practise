@@ -1,0 +1,37 @@
+currentBuild.displayName="Anil-pipeline--"+BUILD_NUMBER
+pipeline {
+    agent { label 'slave_anil'}
+    environment {
+     PATH = "/opt/maven/bin:$PATH"
+     }
+
+    stages {
+        stage('Hello') {
+            steps {
+                echo 'Hello World'
+            }
+        }
+        stage('checkout'){
+            steps{
+              checkout([$class: 'GitSCM',
+              branches: [[name: '*/master']], 
+              extensions: [], 
+              userRemoteConfigs: [[credentialsId: 'github-anil', 
+              url: 'https://github.com/aneelgit/hello-world-war.git']]])  
+            }
+        }
+        stage('build'){
+            steps{
+                sh 'mvn package'
+            }
+        }  
+        stage('deploy'){
+            steps{
+                deploy adapters: [tomcat8(credentialsId: 'tomcatanil',
+                path: '', url: 'http://13.232.34.36:8080/')], 
+                contextPath: 'Anil-pipeline', 
+                war: '**/target/*.war'
+            }
+        }
+    }
+}
